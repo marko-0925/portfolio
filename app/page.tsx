@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import Header from '../components/Header'
 import Hero from '../components/Hero'
@@ -24,6 +24,15 @@ export default function Home() {
   const handleLoadingComplete = () => {
     setIsLoading(false)
   }
+
+  // Fallback: automatically hide loading after 5 seconds
+  useEffect(() => {
+    const fallbackTimer = setTimeout(() => {
+      setIsLoading(false)
+    }, 5000)
+
+    return () => clearTimeout(fallbackTimer)
+  }, [])
 
   return (
     <>
