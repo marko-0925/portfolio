@@ -14,7 +14,7 @@
     font-family: 'Inter', system-ui, sans-serif;
     background: #ffffff;
     min-height: 100vh;
-    cursor: none;
+    cursor: auto;
   }
 
   @media (max-width: 768px) {
