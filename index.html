@@ -19,9 +19,6 @@
     <!-- Font Awesome for icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
-    <!-- EmailJS -->
-    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
-    
     
     <style>
         * {
@@ -1378,62 +1375,66 @@
             nav.classList.toggle('show');
         });
 
-        // Initialize EmailJS
-        (function() {
-            emailjs.init("YOUR_PUBLIC_KEY"); // Replace with your EmailJS public key
-        })();
-
         // Contact form handling
         const contactForm = document.getElementById('contactForm');
         const submitBtn = document.getElementById('submitBtn');
         
-        contactForm.addEventListener('submit', async function(e) {
+        contactForm.addEventListener('submit', function(e) {
             e.preventDefault();
             
             const formData = new FormData(contactForm);
-            const data = {
-                name: formData.get('name'),
-                email: formData.get('email'),
-                subject: formData.get('subject'),
-                message: formData.get('message')
-            };
+            const name = formData.get('name');
+            const email = formData.get('email');
+            const subject = formData.get('subject');
+            const message = formData.get('message');
             
             // Show loading state
             submitBtn.disabled = true;
-            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Preparing...';
             
-            try {
-                // Send email using EmailJS
-                await emailjs.send('YOUR_SERVICE_ID', 'YOUR_TEMPLATE_ID', data);
-                
-                // Success message
-                submitBtn.innerHTML = '<i class="fas fa-check"></i> Message Sent!';
+            // Create mailto link with better formatting
+            const emailBody = `Hello Marko,
+
+I found your portfolio and would like to get in touch.
+
+Name: ${name}
+Email: ${email}
+Subject: ${subject}
+
+Message:
+${message}
+
+Best regards,
+${name}`;
+            
+            const mailtoLink = `mailto:marko.djurdjevic@gmail.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(emailBody)}`;
+            
+            // Open email client
+            window.location.href = mailtoLink;
+            
+            // Success message
+            setTimeout(() => {
+                submitBtn.innerHTML = '<i class="fas fa-check"></i> Email Client Opened!';
                 submitBtn.style.background = '#10b981';
+                
+                // Show instruction
+                const instruction = document.createElement('div');
+                instruction.innerHTML = '<p style="color: #10b981; margin-top: 10px; font-size: 14px;">Please send the email from your email client to complete the process.</p>';
+                contactForm.appendChild(instruction);
                 
                 // Reset form
                 contactForm.reset();
                 
-                // Reset button after 3 seconds
+                // Reset button after 5 seconds
                 setTimeout(() => {
                     submitBtn.disabled = false;
                     submitBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Send Message';
                     submitBtn.style.background = '#3b82f6';
-                }, 3000);
-                
-            } catch (error) {
-                console.error('Error sending email:', error);
-                
-                // Error message
-                submitBtn.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Error - Try Again';
-                submitBtn.style.background = '#ef4444';
-                
-                // Reset button after 3 seconds
-                setTimeout(() => {
-                    submitBtn.disabled = false;
-                    submitBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Send Message';
-                    submitBtn.style.background = '#3b82f6';
-                }, 3000);
-            }
+                    if (instruction.parentNode) {
+                        instruction.parentNode.removeChild(instruction);
+                    }
+                }, 5000);
+            }, 1000);
         });
 
         // Loading screen
