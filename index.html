@@ -19,9 +19,6 @@
     <!-- Font Awesome for icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
-    <!-- EmailJS -->
-    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
-    
     
     <style>
         * {
@@ -1377,16 +1374,11 @@
             nav.classList.toggle('show');
         });
 
-        // Initialize EmailJS
-        (function() {
-            emailjs.init("YOUR_PUBLIC_KEY"); // Replace with your EmailJS public key
-        })();
-
         // Contact form handling
         const contactForm = document.getElementById('contactForm');
         const submitBtn = document.getElementById('submitBtn');
         
-        contactForm.addEventListener('submit', async function(e) {
+        contactForm.addEventListener('submit', function(e) {
             e.preventDefault();
             
             const formData = new FormData(contactForm);
@@ -1399,31 +1391,44 @@
             
             // Show loading state
             submitBtn.disabled = true;
-            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Preparing...';
             
-            try {
-                // Send email using EmailJS
-                const result = await emailjs.send('YOUR_SERVICE_ID', 'YOUR_TEMPLATE_ID', {
-                    from_name: data.name,
-                    from_email: data.email,
-                    subject: data.subject,
-                    message: data.message,
-                    to_email: 'marko.djurdjevic@gmail.com'
-                });
-                
-                console.log('Email sent successfully:', result);
-                
-                // Success message
-                submitBtn.innerHTML = '<i class="fas fa-check"></i> Message Sent!';
+            // Create professional email body
+            const emailBody = `Hello Marko,
+
+I found your portfolio and would like to get in touch.
+
+Name: ${data.name}
+Email: ${data.email}
+Subject: ${data.subject}
+
+Message:
+${data.message}
+
+Best regards,
+${data.name}
+
+---
+This message was sent from your portfolio contact form.`;
+            
+            // Create mailto link
+            const mailtoLink = `mailto:marko.djurdjevic@gmail.com?subject=${encodeURIComponent(data.subject)}&body=${encodeURIComponent(emailBody)}`;
+            
+            // Open email client
+            window.location.href = mailtoLink;
+            
+            // Success message
+            setTimeout(() => {
+                submitBtn.innerHTML = '<i class="fas fa-envelope"></i> Email Client Opened!';
                 submitBtn.style.background = '#10b981';
-                
-                // Reset form
-                contactForm.reset();
                 
                 // Show success message
                 const successMsg = document.createElement('div');
-                successMsg.innerHTML = '<p style="color: #10b981; margin-top: 10px; font-size: 14px; font-weight: 500;">✅ Thank you! Your message has been sent to Marko\'s Gmail inbox.</p>';
+                successMsg.innerHTML = '<p style="color: #10b981; margin-top: 10px; font-size: 14px; font-weight: 500;">📧 Email client opened! Please send the email to complete the process.</p>';
                 contactForm.appendChild(successMsg);
+                
+                // Reset form
+                contactForm.reset();
                 
                 // Reset button after 5 seconds
                 setTimeout(() => {
@@ -1434,29 +1439,7 @@
                         successMsg.parentNode.removeChild(successMsg);
                     }
                 }, 5000);
-                
-            } catch (error) {
-                console.error('Error sending email:', error);
-                
-                // Error message
-                submitBtn.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Error - Try Again';
-                submitBtn.style.background = '#ef4444';
-                
-                // Show error message
-                const errorMsg = document.createElement('div');
-                errorMsg.innerHTML = '<p style="color: #ef4444; margin-top: 10px; font-size: 14px;">❌ Sorry, there was an error. Please try again or email marko.djurdjevic@gmail.com directly.</p>';
-                contactForm.appendChild(errorMsg);
-                
-                // Reset button after 5 seconds
-                setTimeout(() => {
-                    submitBtn.disabled = false;
-                    submitBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Send Message';
-                    submitBtn.style.background = '#3b82f6';
-                    if (errorMsg.parentNode) {
-                        errorMsg.parentNode.removeChild(errorMsg);
-                    }
-                }, 5000);
-            }
+            }, 1000);
         });
 
         // Loading screen
@@ -1491,6 +1474,9 @@
         // Header hide/show on scroll
         let lastScrollY = window.scrollY;
         const header = document.querySelector('.header');
+
+        // Hide header on page load (since we're at top)
+        header.classList.add('hidden');
 
         window.addEventListener('scroll', () => {
             const currentScrollY = window.scrollY;
