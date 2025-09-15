@@ -432,20 +432,22 @@
         }
 
         .stat-number {
-            font-size: 2.5rem;
-            font-weight: 700;
+            font-size: 3rem;
+            font-weight: 800;
             color: #1f2937;
-            margin-bottom: 0.25rem;
+            margin-bottom: 0.5rem;
             animation: countUp 2s ease-out;
-            text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            line-height: 1;
         }
 
         .stat-label {
-            font-size: 1rem;
-            color: #374151;
-            font-weight: 600;
+            font-size: 1.25rem;
+            color: #1f2937;
+            font-weight: 700;
             text-transform: uppercase;
-            letter-spacing: 0.05em;
+            letter-spacing: 0.1em;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.1);
         }
 
         .profile-image {
@@ -1008,14 +1010,6 @@
                     </a>
                 </div>
                 
-                <div class="social-links">
-                    <a href="https://github.com/david-star0210" class="social-link" target="_blank">
-                        <i class="fab fa-github"></i>
-                    </a>
-                    <a href="https://linkedin.com/in/david-crystal" class="social-link" target="_blank">
-                        <i class="fab fa-linkedin"></i>
-                    </a>
-                </div>
             </div>
             
             <div class="hero-visual">
@@ -1379,62 +1373,85 @@
         const contactForm = document.getElementById('contactForm');
         const submitBtn = document.getElementById('submitBtn');
         
-        contactForm.addEventListener('submit', function(e) {
+        contactForm.addEventListener('submit', async function(e) {
             e.preventDefault();
             
             const formData = new FormData(contactForm);
-            const name = formData.get('name');
-            const email = formData.get('email');
-            const subject = formData.get('subject');
-            const message = formData.get('message');
+            const data = {
+                name: formData.get('name'),
+                email: formData.get('email'),
+                subject: formData.get('subject'),
+                message: formData.get('message')
+            };
             
             // Show loading state
             submitBtn.disabled = true;
-            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Preparing...';
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
             
-            // Create mailto link with better formatting
-            const emailBody = `Hello Marko,
-
-I found your portfolio and would like to get in touch.
-
-Name: ${name}
-Email: ${email}
-Subject: ${subject}
-
-Message:
-${message}
-
-Best regards,
-${name}`;
-            
-            const mailtoLink = `mailto:marko.djurdjevic@gmail.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(emailBody)}`;
-            
-            // Open email client
-            window.location.href = mailtoLink;
-            
-            // Success message
-            setTimeout(() => {
-                submitBtn.innerHTML = '<i class="fas fa-check"></i> Email Client Opened!';
-                submitBtn.style.background = '#10b981';
+            try {
+                // Send email using Formspree (free service)
+                const response = await fetch('https://formspree.io/f/xpwgvqvd', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        name: data.name,
+                        email: data.email,
+                        subject: data.subject,
+                        message: data.message,
+                        _replyto: data.email
+                    })
+                });
                 
-                // Show instruction
-                const instruction = document.createElement('div');
-                instruction.innerHTML = '<p style="color: #10b981; margin-top: 10px; font-size: 14px;">Please send the email from your email client to complete the process.</p>';
-                contactForm.appendChild(instruction);
+                if (response.ok) {
+                    // Success message
+                    submitBtn.innerHTML = '<i class="fas fa-check"></i> Message Sent!';
+                    submitBtn.style.background = '#10b981';
+                    
+                    // Reset form
+                    contactForm.reset();
+                    
+                    // Show success message
+                    const successMsg = document.createElement('div');
+                    successMsg.innerHTML = '<p style="color: #10b981; margin-top: 10px; font-size: 14px; font-weight: 500;">Thank you! Your message has been sent to Marko\'s Gmail inbox.</p>';
+                    contactForm.appendChild(successMsg);
+                    
+                    // Reset button after 5 seconds
+                    setTimeout(() => {
+                        submitBtn.disabled = false;
+                        submitBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Send Message';
+                        submitBtn.style.background = '#3b82f6';
+                        if (successMsg.parentNode) {
+                            successMsg.parentNode.removeChild(successMsg);
+                        }
+                    }, 5000);
+                } else {
+                    throw new Error('Failed to send message');
+                }
                 
-                // Reset form
-                contactForm.reset();
+            } catch (error) {
+                console.error('Error sending email:', error);
+                
+                // Error message
+                submitBtn.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Error - Try Again';
+                submitBtn.style.background = '#ef4444';
+                
+                // Show error message
+                const errorMsg = document.createElement('div');
+                errorMsg.innerHTML = '<p style="color: #ef4444; margin-top: 10px; font-size: 14px;">Sorry, there was an error. Please try again or email marko.djurdjevic@gmail.com directly.</p>';
+                contactForm.appendChild(errorMsg);
                 
                 // Reset button after 5 seconds
                 setTimeout(() => {
                     submitBtn.disabled = false;
                     submitBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Send Message';
                     submitBtn.style.background = '#3b82f6';
-                    if (instruction.parentNode) {
-                        instruction.parentNode.removeChild(instruction);
+                    if (errorMsg.parentNode) {
+                        errorMsg.parentNode.removeChild(errorMsg);
                     }
                 }, 5000);
-            }, 1000);
+            }
         });
 
         // Loading screen
